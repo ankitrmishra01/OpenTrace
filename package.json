@@ -1,0 +1,26 @@
+{
+  "name": "opentrace",
+  "version": "2.4.1",
+  "description": "AI-Powered Digital Footprint & Cyber Risk Analyzer",
+  "private": true,
+  "scripts": {
+    "install:all": "cd frontend && npm install && cd ../server && npm install",
+    "dev": "concurrently \"cd frontend && npm run dev\" \"cd server && npm run dev\"",
+    "build": "cd frontend && npm run build",
+    "start": "cd server && npm start",
+    "frontend:dev": "cd frontend && npm run dev",
+    "server:dev": "cd server && npm run dev"
+  },
+  "keywords": [
+    "cybersecurity",
+    "osint",
+    "ai",
+    "risk-analysis",
+    "digital-footprint"
+  ],
+  "author": "OpenTrace Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.1"
+  }
+}
