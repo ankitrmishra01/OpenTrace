@@ -861,15 +861,15 @@ function AuthPage({
             <GoogleLogin
               onSuccess={onGoogleSuccess}
               onError={() => alert("Login Failed")}
-              type="standard"
-              theme="dark"
-              size="large"
-              text="signin"
-              locale="en"
-              style={{
-                width: "100%",
-                "--google_container_width": "100%",
-              }}
+              render={(renderProps) => (
+                <CyberButton
+                  onClick={renderProps.onClick}
+                  disabled={renderProps.disabled}
+                  style={{ width: "100%", padding: "12px", fontSize: "13px" }}
+                >
+                  🔐 SIGN IN WITH GOOGLE
+                </CyberButton>
+              )}
             />
           </div>
 
