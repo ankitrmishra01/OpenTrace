@@ -1,10 +1,27 @@
 # 🔐 OpenTrace — AI-Powered Cyber Risk Analyzer
 
-> An ethical OSINT platform for digital footprint analysis and cyber risk assessment.
+> An ethical OSINT platform for digital footprint analysis and cyber risk assessment using Groq AI.
 
 ![OpenTrace](https://img.shields.io/badge/OpenTrace-v2.4.1-00d4ff?style=for-the-badge&logo=shield&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-7c3aed?style=for-the-badge)
 ![Educational](https://img.shields.io/badge/Purpose-Educational-00ff88?style=for-the-badge)
+![Deployment](https://img.shields.io/badge/Deployment-Vercel%20%2B%20Render-blue?style=for-the-badge)
+
+---
+
+## 💻 Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React 18 + Vite | Modern SPA with fast build times |
+| **UI** | CSS3 (Cyberpunk theme) | Neon effects, glitch text, glassmorphism |
+| **API Client** | Axios | HTTP requests with auto token injection |
+| **Backend** | Node.js + Express | Scalable REST API |
+| **Database** | MongoDB Atlas | Cloud document storage |
+| **Auth** | JWT + bcrypt | Secure authentication & password hashing |
+| **OAuth** | Google Sign-In | Third-party authentication |
+| **AI** | Groq API (Mixtral 8x7b) | Fast LLM inference for risk analysis |
+| **Deployment** | Vercel + Render | Production-grade hosting |
 
 ---
 
@@ -14,7 +31,7 @@
 
 - Node.js 18+
 - MongoDB Atlas account (free tier ok)
-- Anthropic API key (free credits available)
+- Groq API key (free tier available)
 - Google OAuth credentials (optional, for Google login)
 
 ### 1. Clone & Install
@@ -33,7 +50,7 @@ PORT=5000
 MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/opentrace?retryWrites=true&w=majority
 JWT_SECRET=your_super_secret_jwt_key_here_change_in_production
 CLIENT_URL=http://localhost:5173
-ANTHROPIC_API_KEY=sk-ant-xxxxx
+GROQ_API_KEY=gsk_xxxxx
 GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=xxxxx
 ```
@@ -67,11 +84,12 @@ npm run dev
 4. Create database user
 5. Copy connection string into `server/.env`
 
-### Anthropic API Setup (1 minute)
+### Groq API Setup (1 minute)
 
-1. Go to https://console.anthropic.com
-2. Create API key
-3. Add to `server/.env` as `ANTHROPIC_API_KEY`
+1. Go to https://console.groq.com
+2. Create free account and get API key
+3. Add to `server/.env` as `GROQ_API_KEY`
+4. Free tier includes 30 requests/minute (sufficient for demos)
 
 ### Google OAuth Setup (Optional, 5 minutes)
 
@@ -238,10 +256,11 @@ GET /api/scan/:scanId (Protected)
 
 ✅ **AI Recommendations**
 
-- Anthropic Claude Sonnet 4 integration
-- Dynamic prompt generation
-- Fallback analysis if API unavailable
+- Groq API integration (Lightning-fast LLM inference)
+- Dynamic prompt generation based on scan results
+- Real-time risk analysis and recommendations
 - Markdown-formatted output
+- Fallback analysis if API unavailable
 
 ✅ **Data Persistence**
 
@@ -309,34 +328,77 @@ opentrace database should have:
 
 ---
 
-## 🚢 Deployment
+## 🚢 Deployment Guide
 
-### Deploy Frontend to Vercel
+### Live Demo
+- **Frontend**: https://open-trace-six.vercel.app
+- **Status**: ✅ Production Ready
 
+### Frontend Deployment (Vercel)
+
+#### Option 1: Auto-Deploy (Recommended)
+1. Push to GitHub
+2. Vercel auto-deploys on every push
+3. Done! (1-2 min deployment time)
+
+#### Option 2: Manual Deploy
 ```bash
 cd frontend
 vercel --prod
 ```
 
-Set environment variables in Vercel dashboard:
+**Environment Variables in Vercel Dashboard:**
+- `VITE_API_URL` = Backend API URL (e.g., https://opentrace-backend.onrender.com/api)
+- `VITE_GOOGLE_CLIENT_ID` = Your Google OAuth Client ID
 
-- `VITE_API_URL` = your backend URL
-- `VITE_GOOGLE_CLIENT_ID` = your Google OAuth ID
+**Authorized Origins in Google Cloud Console:**
+- `https://open-trace-six.vercel.app`
+- `http://localhost:5173` (for local development)
 
-### Deploy Backend to Render
+### Backend Deployment (Render)
 
-1. Create Web Service on render.com
-2. Connect GitHub repo
-3. Set root directory to `server/`
-4. Build command: `npm install`
-5. Start command: `npm start`
-6. Add environment variables:
-   - `MONGODB_URI`
-   - `JWT_SECRET`
-   - `ANTHROPIC_API_KEY`
-   - `CLIENT_URL` = your Vercel frontend URL
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
+1. **Create Render Web Service**:
+   - Go to https://render.com
+   - New → Web Service
+   - Connect GitHub repository
+
+2. **Configure Service**:
+   - Name: `opentrace-api`
+   - Root Directory: `server/`
+   - Runtime: Node
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Plan: Free or Paid
+
+3. **Add Environment Variables**:
+   ```
+   PORT=3000
+   MONGODB_URI=mongodb+srv://...
+   JWT_SECRET=your_strong_secret_key
+   GROQ_API_KEY=gsk_xxxxx
+   CLIENT_URL=https://open-trace-six.vercel.app
+   GOOGLE_CLIENT_ID=xxxxx
+   GOOGLE_CLIENT_SECRET=xxxxx
+   ```
+
+4. **Deploy**: Click "Deploy" and wait 2-5 minutes
+
+### Troubleshooting Deployment
+
+**Frontend deployment fails:**
+- Check `VITE_API_URL` is reachable
+- Verify `.env` variables in Vercel dashboard
+- Check build logs: Vercel Dashboard → Deployments
+
+**Backend deployment fails:**
+- Ensure `server/` directory has package.json
+- Check MONGODB_URI is valid
+- Verify all required env vars are set in Render
+
+**Google OAuth not working in production:**
+- Ensure `https://open-trace-six.vercel.app` is in Google Console
+- Verify `VITE_GOOGLE_CLIENT_ID` matches frontend
+- Check `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in backend
 
 ---
 
@@ -377,8 +439,18 @@ cd server && npm install
 ### "Google OAuth not working"
 
 - Verify `VITE_GOOGLE_CLIENT_ID` matches config
-- Check authorized redirect URIs in Google Cloud Console
+- Check authorized JavaScript origins in Google Cloud Console
+- **No trailing slash** in origin URLs: `https://domain.com` not `https://domain.com/`
 - Ensure `.env` files are loaded (restart dev server)
+- Check browser popup blocker settings (Chrome/Firefox)
+- Clear browser cache and cookies before testing
+
+### "Popup blocked by browser"
+
+- This is browser security, not a code issue
+- Chrome: Click lock icon → Site settings → Popups → Allow
+- Firefox: Preferences → Privacy → Pop-ups → Exceptions
+- Clear cache and try again
 
 ### "API calls returning 401"
 
