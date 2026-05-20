@@ -20,11 +20,11 @@
 )
 
 ### Cyber Command Center
-![Dashboard](<img width="1918" height="841" alt="image" src="https://github.com/user-attachments/assets/9bfcd865-340e-4a55-94c7-00b115a302a2" />
+![Dashboard](.<img width="1918" height="841" alt="image" src="https://github.com/user-attachments/assets/9bfcd865-340e-4a55-94c7-00b115a302a2" />
 )
 
 ### Intelligence Scan & Risk Analysis
-![Analysis](<img width="1919" height="959" alt="image" src="https://github.com/user-attachments/assets/448b428e-3ae3-4794-b3de-1df08f71a39e" />
+![Analysis](.<img width="1919" height="959" alt="image" src="https://github.com/user-attachments/assets/448b428e-3ae3-4794-b3de-1df08f71a39e" />
 )
 
 ---
