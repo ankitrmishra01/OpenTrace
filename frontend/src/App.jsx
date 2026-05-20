@@ -861,15 +861,15 @@ function AuthPage({
             <GoogleLogin
               onSuccess={onGoogleSuccess}
               onError={() => alert("Login Failed")}
-              render={(renderProps) => (
-                <CyberButton
-                  onClick={renderProps.onClick}
-                  disabled={renderProps.disabled}
-                  style={{ width: "100%", padding: "12px", fontSize: "13px" }}
-                >
-                  🔐 SIGN IN WITH GOOGLE
-                </CyberButton>
-              )}
+              type="standard"
+              theme="dark"
+              size="large"
+              text="signin"
+              locale="en"
+              style={{
+                width: "100%",
+                "--google_container_width": "100%",
+              }}
             />
           </div>
 
@@ -1830,6 +1830,9 @@ export default function OpenTrace() {
     setLoading(true);
     try {
       const { credential } = credentialResponse;
+      if (!credential) {
+        throw new Error("No credential received from Google");
+      }
       const decoded = JSON.parse(atob(credential.split(".")[1]));
       const res = await authAPI.googleAuth({
         googleId: decoded.sub,
@@ -1843,7 +1846,8 @@ export default function OpenTrace() {
       setUser(userData);
       setPage(PAGES.DASHBOARD);
     } catch (err) {
-      alert("Google login failed: " + err.message);
+      console.error("Google login error:", err);
+      alert("Google login failed: " + (err.message || "Unknown error"));
     }
     setLoading(false);
   };
