@@ -9,6 +9,26 @@
 
 ---
 
+# 🔐 OpenTrace — AI-Powered Cyber Risk Analyzer
+
+(short description)
+
+## 📸 Screenshots
+
+### Authentication Portal
+![Authentication](.<img width="1896" height="940" alt="image" src="https://github.com/user-attachments/assets/51f1906b-d6d3-4ce8-9fdf-d8e9fba252ca" />
+)
+
+### Cyber Command Center
+![Dashboard](<img width="1918" height="841" alt="image" src="https://github.com/user-attachments/assets/9bfcd865-340e-4a55-94c7-00b115a302a2" />
+)
+
+### Intelligence Scan & Risk Analysis
+![Analysis](<img width="1919" height="959" alt="image" src="https://github.com/user-attachments/assets/448b428e-3ae3-4794-b3de-1df08f71a39e" />
+)
+
+---
+
 ## 💻 Tech Stack
 
 | Layer          | Technology              | Purpose                                  |
@@ -103,6 +123,24 @@ npm run dev
 6. Copy Client ID and Secret to `.env` files
 
 ---
+## 🏗️ System Architecture
+```mermaid
+graph TD
+
+A[User Browser] --> B[React + Vite Frontend]
+B --> C[Express Backend API]
+
+C --> D[(MongoDB Atlas)]
+C --> E[Groq AI API]
+
+C --> F[Google OAuth]
+C --> G[GitHub API]
+C --> H[Reddit API]
+C --> I[Gravatar API]
+
+B --> J[Vercel Hosting]
+C --> K[Render Hosting]
+```
 
 ## 📁 Project Structure
 
