@@ -11,17 +11,17 @@
 
 ## 💻 Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend** | React 18 + Vite | Modern SPA with fast build times |
-| **UI** | CSS3 (Cyberpunk theme) | Neon effects, glitch text, glassmorphism |
-| **API Client** | Axios | HTTP requests with auto token injection |
-| **Backend** | Node.js + Express | Scalable REST API |
-| **Database** | MongoDB Atlas | Cloud document storage |
-| **Auth** | JWT + bcrypt | Secure authentication & password hashing |
-| **OAuth** | Google Sign-In | Third-party authentication |
-| **AI** | Groq API (Mixtral 8x7b) | Fast LLM inference for risk analysis |
-| **Deployment** | Vercel + Render | Production-grade hosting |
+| Layer          | Technology              | Purpose                                  |
+| -------------- | ----------------------- | ---------------------------------------- |
+| **Frontend**   | React 18 + Vite         | Modern SPA with fast build times         |
+| **UI**         | CSS3 (Cyberpunk theme)  | Neon effects, glitch text, glassmorphism |
+| **API Client** | Axios                   | HTTP requests with auto token injection  |
+| **Backend**    | Node.js + Express       | Scalable REST API                        |
+| **Database**   | MongoDB Atlas           | Cloud document storage                   |
+| **Auth**       | JWT + bcrypt            | Secure authentication & password hashing |
+| **OAuth**      | Google Sign-In          | Third-party authentication               |
+| **AI**         | Groq API (Mixtral 8x7b) | Fast LLM inference for risk analysis     |
+| **Deployment** | Vercel + Render         | Production-grade hosting                 |
 
 ---
 
@@ -331,27 +331,32 @@ opentrace database should have:
 ## 🚢 Deployment Guide
 
 ### Live Demo
+
 - **Frontend**: https://open-trace-six.vercel.app
 - **Status**: ✅ Production Ready
 
 ### Frontend Deployment (Vercel)
 
 #### Option 1: Auto-Deploy (Recommended)
+
 1. Push to GitHub
 2. Vercel auto-deploys on every push
 3. Done! (1-2 min deployment time)
 
 #### Option 2: Manual Deploy
+
 ```bash
 cd frontend
 vercel --prod
 ```
 
 **Environment Variables in Vercel Dashboard:**
+
 - `VITE_API_URL` = Backend API URL (e.g., https://opentrace-backend.onrender.com/api)
 - `VITE_GOOGLE_CLIENT_ID` = Your Google OAuth Client ID
 
 **Authorized Origins in Google Cloud Console:**
+
 - `https://open-trace-six.vercel.app`
 - `http://localhost:5173` (for local development)
 
@@ -371,6 +376,7 @@ vercel --prod
    - Plan: Free or Paid
 
 3. **Add Environment Variables**:
+
    ```
    PORT=3000
    MONGODB_URI=mongodb+srv://...
@@ -386,16 +392,19 @@ vercel --prod
 ### Troubleshooting Deployment
 
 **Frontend deployment fails:**
+
 - Check `VITE_API_URL` is reachable
 - Verify `.env` variables in Vercel dashboard
 - Check build logs: Vercel Dashboard → Deployments
 
 **Backend deployment fails:**
+
 - Ensure `server/` directory has package.json
 - Check MONGODB_URI is valid
 - Verify all required env vars are set in Render
 
 **Google OAuth not working in production:**
+
 - Ensure `https://open-trace-six.vercel.app` is in Google Console
 - Verify `VITE_GOOGLE_CLIENT_ID` matches frontend
 - Check `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in backend
