@@ -471,7 +471,7 @@ cd server && npm install
 
 ## 📄 License
 
-MIT © 2024 OpenTrace
+MIT © 2026 OpenTrace
 
 ---
 
