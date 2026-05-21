@@ -112,21 +112,25 @@ export const scanPlatforms = async (username) => {
             {
               headers: {
                 "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 Accept:
-                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.5",
+                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                DNT: "1",
+                Connection: "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
               },
-              timeout: 8000,
+              timeout: 10000,
               validateStatus: () => true,
-              maxRedirects: 5,
+              maxRedirects: 0,
             },
           );
+          // LinkedIn returns 200 for valid profiles, 404 for not found, 999 for blocked requests
+          // Redirect (30x) to login means profile might exist but requires auth
           found =
-            response.status === 200 &&
-            (response.data.includes("LinkedIn") ||
-              response.data.includes("profile") ||
-              response.data.includes("firstName"));
+            response.status === 200 ||
+            (response.status >= 300 && response.status < 400);
         } catch (err) {
           found = false;
         }
