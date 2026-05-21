@@ -58,6 +58,7 @@ export const scanPlatforms = async (username) => {
     try {
       let found = false;
       let avatar = null;
+      let note = null;
 
       if (platform.id === "github") {
         try {
@@ -84,7 +85,7 @@ export const scanPlatforms = async (username) => {
               timeout: 5000,
             },
           );
-          found = response.status === 200;
+          found = response.status === 200 && !response.data?.data?.is_suspended;
         } catch (err) {
           found = false;
         }
@@ -105,33 +106,14 @@ export const scanPlatforms = async (username) => {
           found = false;
         }
       } else if (platform.id === "linkedin") {
-        // LinkedIn blocks scraping — we check if URL pattern is valid
-        // and mark as "possible" based on username format
-        found = username.length >= 3 && username.length <= 100;
+        found = false;
+        note = "Cannot verify — LinkedIn blocks automated checks";
       } else if (platform.id === "twitter") {
-        try {
-          const response = await axios.get(`https://twitter.com/${username}`, {
-            timeout: 5000,
-            headers: { "User-Agent": "Mozilla/5.0" },
-            maxRedirects: 3,
-          });
-          found = response.status === 200;
-        } catch (err) {
-          found = err.response?.status !== 404;
-        }
+        found = false;
+        note = "Cannot verify — Twitter blocks automated checks";
       } else if (platform.id === "instagram") {
-        try {
-          const response = await axios.get(
-            `https://www.instagram.com/${username}/`,
-            {
-              timeout: 5000,
-              headers: { "User-Agent": "Mozilla/5.0" },
-            },
-          );
-          found = response.status === 200;
-        } catch (err) {
-          found = err.response?.status !== 404;
-        }
+        found = false;
+        note = "Cannot verify — Instagram blocks automated checks";
       }
 
       results.push({
@@ -139,6 +121,7 @@ export const scanPlatforms = async (username) => {
         id: platform.id,
         found,
         avatar,
+        note,
         url: platform.checkUrl(username),
         color: platform.color,
         icon: platform.icon,
@@ -149,6 +132,7 @@ export const scanPlatforms = async (username) => {
         id: platform.id,
         found: false,
         avatar: null,
+        note: null,
         url: platform.checkUrl(username),
         color: platform.color,
         icon: platform.icon,

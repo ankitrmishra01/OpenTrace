@@ -1368,7 +1368,7 @@ function Dashboard({ user, onBack, onLogout }) {
       setResults(scanResults.results);
       setRiskScore(scanResults.riskScore);
       addLog(
-        `Scan complete. ${scanResults.platformsFound}/${PLATFORMS.length} platforms detected.`,
+        `Scan complete. ${scanResults.platformsFound}/${scanResults.results.length} platforms detected.`,
         "#00d4ff",
       );
       addLog(
