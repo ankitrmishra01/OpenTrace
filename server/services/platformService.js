@@ -106,14 +106,55 @@ export const scanPlatforms = async (username) => {
           found = false;
         }
       } else if (platform.id === "linkedin") {
-        found = false;
-        note = "Cannot verify — LinkedIn blocks automated checks";
+        try {
+          const response = await axios.get(
+            `https://www.linkedin.com/in/${username}`,
+            {
+              headers: {
+                "User-Agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+              },
+              timeout: 5000,
+              validateStatus: () => true,
+            },
+          );
+          found =
+            response.status === 200 && response.data.includes("data-locale");
+        } catch (err) {
+          found = false;
+        }
       } else if (platform.id === "twitter") {
-        found = false;
-        note = "Cannot verify — Twitter blocks automated checks";
+        try {
+          const response = await axios.get(`https://twitter.com/${username}`, {
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            },
+            timeout: 5000,
+            validateStatus: () => true,
+          });
+          found = response.status === 200 && response.data.includes("account");
+        } catch (err) {
+          found = false;
+        }
       } else if (platform.id === "instagram") {
-        found = false;
-        note = "Cannot verify — Instagram blocks automated checks";
+        try {
+          const response = await axios.get(
+            `https://www.instagram.com/${username}`,
+            {
+              headers: {
+                "User-Agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+              },
+              timeout: 5000,
+              validateStatus: () => true,
+            },
+          );
+          found =
+            response.status === 200 && response.data.includes("instagram");
+        } catch (err) {
+          found = false;
+        }
       }
 
       results.push({
