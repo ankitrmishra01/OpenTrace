@@ -112,14 +112,21 @@ export const scanPlatforms = async (username) => {
             {
               headers: {
                 "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                Accept:
+                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
               },
-              timeout: 5000,
+              timeout: 8000,
               validateStatus: () => true,
+              maxRedirects: 5,
             },
           );
           found =
-            response.status === 200 && response.data.includes("data-locale");
+            response.status === 200 &&
+            (response.data.includes("LinkedIn") ||
+              response.data.includes("profile") ||
+              response.data.includes("firstName"));
         } catch (err) {
           found = false;
         }
