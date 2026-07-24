@@ -1241,19 +1241,21 @@ function AuthPage({
             <div style={{ flex: 1, height: "1px", background: "#ffffff11" }} />
           </div>
 
-          <div style={{ marginBottom: "20px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+              marginBottom: "20px",
+            }}
+          >
             <GoogleLogin
               onSuccess={onGoogleSuccess}
-              onError={() => alert("Login Failed")}
-              render={(renderProps) => (
-                <CyberButton
-                  onClick={renderProps.onClick}
-                  disabled={renderProps.disabled}
-                  style={{ width: "100%", padding: "12px", fontSize: "13px" }}
-                >
-                  🔐 SIGN IN WITH GOOGLE
-                </CyberButton>
-              )}
+              onError={() => alert("Google Login Failed")}
+              theme="filled_black"
+              shape="rectangular"
+              size="large"
+              width="350"
             />
           </div>
 
