@@ -18,8 +18,6 @@ const PLATFORMS = [
     icon: "⬡",
     color: "#58a6ff",
     checkUrl: (u) => `https://github.com/${u}`,
-    avatarApi: (u) => `https://github.com/${u}.png?size=80`,
-    weight: 2,
   },
   {
     id: "reddit",
@@ -27,17 +25,6 @@ const PLATFORMS = [
     icon: "◈",
     color: "#ff4500",
     checkUrl: (u) => `https://www.reddit.com/user/${u}`,
-    avatarApi: null,
-    weight: 1.5,
-  },
-  {
-    id: "linkedin",
-    name: "LinkedIn",
-    icon: "◉",
-    color: "#0077b5",
-    checkUrl: (u) => `https://www.linkedin.com/in/${u}`,
-    avatarApi: null,
-    weight: 1.5,
   },
   {
     id: "leetcode",
@@ -45,17 +32,45 @@ const PLATFORMS = [
     icon: "◆",
     color: "#ffa116",
     checkUrl: (u) => `https://leetcode.com/${u}`,
-    avatarApi: null,
-    weight: 1.5,
   },
+  {
+    id: "stackoverflow",
+    name: "Stack Overflow",
+    icon: "🥞",
+    color: "#f48024",
+    checkUrl: (u) => `https://stackoverflow.com/users/${u}`,
+  },
+  {
+    id: "devto",
+    name: "Dev.to",
+    icon: "👩‍💻",
+    color: "#0a0a0a",
+    checkUrl: (u) => `https://dev.to/${u}`,
+  },
+  {
+    id: "gravatar",
+    name: "Gravatar",
+    icon: "🌐",
+    color: "#1e8cbe",
+    checkUrl: (u) => `https://gravatar.com/${u}`,
+  },
+  {
+    id: "hackernews",
+    name: "HackerNews",
+    icon: "Y",
+    color: "#ff6600",
+    checkUrl: (u) => `https://news.ycombinator.com/user?id=${u}`,
+  },
+];
+
+const MANUAL_PLATFORMS = [
   {
     id: "twitter",
     name: "Twitter/X",
     icon: "◇",
     color: "#1da1f2",
     checkUrl: (u) => `https://twitter.com/${u}`,
-    avatarApi: null,
-    weight: 1,
+    note: "Manual check link (automated scraping deprecated due to anti-scraping)",
   },
   {
     id: "instagram",
@@ -63,8 +78,15 @@ const PLATFORMS = [
     icon: "◑",
     color: "#e1306c",
     checkUrl: (u) => `https://www.instagram.com/${u}`,
-    avatarApi: null,
-    weight: 1,
+    note: "Manual check link (automated scraping deprecated due to anti-scraping)",
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    icon: "◉",
+    color: "#0077b5",
+    checkUrl: (u) => `https://www.linkedin.com/in/${u}`,
+    note: "Manual check link (unauthenticated scraping violates ToS)",
   },
 ];
 
@@ -73,7 +95,9 @@ const PAGES = {
   AUTH: "auth",
   DASHBOARD: "dashboard",
   SCAN: "scan",
+  ACCOUNT_SECURITY: "account_security",
 };
+
 
 const GlitchText = ({ text, className = "" }) => {
   const [glitch, setGlitch] = useState(false);
@@ -403,104 +427,437 @@ const NetworkGraph = ({ username, results }) => {
   );
 };
 
-const PlatformCard = ({ result }) => (
-  <NeonBorder
-    color={result.found ? result.color : "#333"}
-    style={{
-      borderRadius: "4px",
-      padding: "16px",
-      display: "flex",
-      alignItems: "center",
-      gap: "14px",
-    }}
-  >
-    <div
-      style={{
-        width: 44,
-        height: 44,
-        borderRadius: "50%",
-        border: `2px solid ${result.found ? result.color : "#333"}`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "18px",
-        boxShadow: result.found ? `0 0 12px ${result.color}66` : "none",
-        overflow: "hidden",
-        background: "#0a0a1a",
-      }}
-    >
-      {result.avatar ? (
-        <img
-          src={result.avatar}
-          alt=""
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          onError={(e) => {
-            e.target.style.display = "none";
-          }}
-        />
-      ) : (
-        <span style={{ color: result.found ? result.color : "#555" }}>
-          {result.icon}
-        </span>
+const UnifiedIdentityCard = ({ identityCard }) => {
+  if (!identityCard) return null;
+  const { primaryName, nameVariants, locations, consolidatedBio, knownLinks, earliestOnline } = identityCard;
+
+  return (
+    <NeonBorder color="#00d4ff" style={{ padding: "24px", borderRadius: "4px", marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #00d4ff33", paddingBottom: "10px" }}>
+        <div>
+          <div style={{ fontSize: "10px", color: "#00d4ff88", letterSpacing: "3px" }}>UNIFIED IDENTITY SUMMARY</div>
+          <div style={{ fontSize: "22px", fontFamily: "'Orbitron',monospace", color: "#fff", marginTop: "4px" }}>
+            {primaryName || "Identity Profile"}
+          </div>
+          {nameVariants && nameVariants.length > 1 && (
+            <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>
+              Known Name Variants: {nameVariants.map((v) => v.name).join(" | ")}
+            </div>
+          )}
+        </div>
+        {earliestOnline && (
+          <div style={{ textAlign: "right", fontSize: "11px", color: "#00ff88" }}>
+            <div style={{ fontSize: "9px", color: "#666", letterSpacing: "1px" }}>EARLIEST ONLINE FOOTPRINT</div>
+            <div>Online since {new Date(earliestOnline).getFullYear()}</div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ fontSize: "13px", color: "#ccc", lineHeight: "1.6", marginBottom: "16px", background: "#0a0a1a", padding: "12px", borderRadius: "4px", border: "1px solid #ffffff11" }}>
+        <span style={{ color: "#00d4ff", fontWeight: "bold" }}>AI SYNTHESIS: </span>
+        {consolidatedBio}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div>
+          <div style={{ fontSize: "10px", color: "#888", letterSpacing: "1px", marginBottom: "6px" }}>DISCLOSED LOCATIONS</div>
+          {locations && locations.length > 0 ? (
+            locations.map((l, i) => (
+              <div key={i} style={{ fontSize: "12px", color: "#e0e0e0", marginBottom: "4px" }}>
+                📍 {l.location} <span style={{ fontSize: "10px", color: "#666" }}>({l.platforms.join(", ")})</span>
+              </div>
+            ))
+          ) : (
+            <div style={{ fontSize: "11px", color: "#555" }}>No location disclosed</div>
+          )}
+        </div>
+
+        <div>
+          <div style={{ fontSize: "10px", color: "#888", letterSpacing: "1px", marginBottom: "6px" }}>VERIFIED EXTERNAL LINKS</div>
+          {knownLinks && knownLinks.length > 0 ? (
+            knownLinks.map((link, i) => (
+              <div key={i} style={{ fontSize: "11px", color: "#00d4ff", marginBottom: "4px" }}>
+                🔗 <a href={link.url} target="_blank" rel="noreferrer" style={{ color: "#00d4ff" }}>{link.url}</a>{" "}
+                {link.confirmed && <span style={{ background: "#00ff8822", color: "#00ff88", padding: "1px 6px", borderRadius: "2px", fontSize: "9px" }}>CONFIRMED</span>}
+              </div>
+            ))
+          ) : (
+            <div style={{ fontSize: "11px", color: "#555" }}>No cross-linked web profiles</div>
+          )}
+        </div>
+      </div>
+    </NeonBorder>
+  );
+};
+
+const IdentityConfidencePanel = ({ identityConfidence }) => {
+  if (!identityConfidence) return null;
+  const { score, evidence } = identityConfidence;
+  const color = score >= 70 ? "#00ff88" : score >= 40 ? "#ffaa00" : "#ff3366";
+
+  return (
+    <NeonBorder color={color} style={{ padding: "16px", borderRadius: "4px", marginBottom: "16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+        <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px" }}>IDENTITY LINKAGE CONFIDENCE</div>
+        <div style={{ fontSize: "18px", fontFamily: "'Orbitron',monospace", color, fontWeight: 700 }}>
+          {score}%
+        </div>
+      </div>
+      <div style={{ fontSize: "11px", color: "#aaa" }}>
+        {evidence && evidence.map((e, i) => (
+          <div key={i} style={{ marginBottom: "3px" }}>✓ {e}</div>
+        ))}
+      </div>
+    </NeonBorder>
+  );
+};
+
+const RiskBreakdownList = ({ breakdown }) => {
+  const [open, setOpen] = useState(false);
+  if (!breakdown || breakdown.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: "12px", textAlign: "left" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          background: "none",
+          border: "none",
+          color: "#00d4ff",
+          fontSize: "11px",
+          fontFamily: "'Share Tech Mono',monospace",
+          cursor: "pointer",
+          letterSpacing: "1px",
+          padding: 0,
+        }}
+      >
+        {open ? "▼ HIDE SCORE BREAKDOWN" : "▶ EXPLAIN SCORE BREAKDOWN"}
+      </button>
+      {open && (
+        <div style={{ marginTop: "10px", background: "#050515", padding: "10px", borderRadius: "4px", border: "1px solid #ffffff11" }}>
+          {breakdown.map((b, i) => (
+            <div key={i} style={{ marginBottom: "8px", fontSize: "11px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#e0e0e0" }}>
+                <span>{b.factor}</span>
+                <span style={{ color: "#ffaa00", fontFamily: "monospace" }}>+{b.points} pts</span>
+              </div>
+              <div style={{ color: "#666", fontSize: "10px" }}>{b.reason}</div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
-    <div style={{ flex: 1 }}>
-      <div
-        style={{
-          fontFamily: "'Share Tech Mono',monospace",
-          color: result.found ? result.color : "#555",
-          fontSize: "13px",
-          letterSpacing: "1px",
-        }}
-      >
-        {result.platform}
+  );
+};
+
+const ScanDiffPanel = ({ scanDiff }) => {
+  if (!scanDiff || !scanDiff.hasChanges) return null;
+
+  return (
+    <NeonBorder color="#ffaa00" style={{ padding: "16px", borderRadius: "4px", marginBottom: "16px" }}>
+      <div style={{ fontSize: "10px", color: "#ffaa00", letterSpacing: "2px", marginBottom: "8px" }}>
+        ⚡ EXPOSURE CHANGES SINCE LAST SCAN ({new Date(scanDiff.baselineDate).toLocaleDateString()})
       </div>
-      <div
-        style={{
-          fontSize: "11px",
-          color: result.found ? "#aaa" : "#444",
-          marginTop: "2px",
-        }}
-      >
-        {result.found ? "PROFILE DETECTED" : "NO PROFILE FOUND"}
+      {scanDiff.newFound && scanDiff.newFound.length > 0 && (
+        <div style={{ fontSize: "12px", color: "#ff3366", marginBottom: "4px" }}>
+          + Newly Discovered Accounts: {scanDiff.newFound.join(", ")}
+        </div>
+      )}
+      {scanDiff.disappeared && scanDiff.disappeared.length > 0 && (
+        <div style={{ fontSize: "12px", color: "#00ff88" }}>
+          - Accounts No Longer Present: {scanDiff.disappeared.join(", ")}
+        </div>
+      )}
+    </NeonBorder>
+  );
+};
+
+const RemediationPanel = ({ checklist }) => {
+  if (!checklist || checklist.length === 0) return null;
+
+  return (
+    <NeonBorder color="#00ff88" style={{ padding: "20px", borderRadius: "4px", marginTop: "20px" }}>
+      <div style={{ fontSize: "10px", color: "#00ff8888", letterSpacing: "3px", marginBottom: "12px" }}>
+        🛡️ ACTIONABLE PRIVACY REMEDIATION CHECKLIST
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {checklist.map((item, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0a1a0f", padding: "10px 14px", borderRadius: "4px", border: "1px solid #00ff8822" }}>
+            <div>
+              <div style={{ fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{item.platform}: {item.issue}</div>
+              <div style={{ fontSize: "11px", color: "#888" }}>{item.action}</div>
+            </div>
+            <a href={item.link} target="_blank" rel="noreferrer" style={{ background: "#00ff8822", color: "#00ff88", padding: "6px 12px", borderRadius: "2px", textDecoration: "none", fontSize: "11px", fontFamily: "monospace" }}>
+              FIX NOW →
+            </a>
+          </div>
+        ))}
+      </div>
+    </NeonBorder>
+  );
+};
+
+const AccountSecurityTab = ({ user }) => {
+  const [emailBreach, setEmailBreach] = useState(null);
+  const [loadingEmail, setLoadingEmail] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordResult, setPasswordResult] = useState(null);
+  const [loadingPass, setLoadingPass] = useState(false);
+
+  useEffect(() => {
+    fetchEmailBreaches();
+  }, []);
+
+  const fetchEmailBreaches = async () => {
+    setLoadingEmail(true);
+    try {
+      const res = await scanAPI.checkEmailBreaches();
+      setEmailBreach(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoadingEmail(false);
+  };
+
+  const handleTestPassword = async (e) => {
+    e.preventDefault();
+    if (!password) return;
+    setLoadingPass(true);
+    try {
+      const res = await scanAPI.checkPasswordLeak(password);
+      setPasswordResult(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoadingPass(false);
+  };
+
+  return (
+    <div style={{ padding: "24px", maxWidth: "900px", margin: "0 auto" }} className="fade-in">
+      <div style={{ marginBottom: "28px" }}>
+        <div style={{ fontSize: "10px", color: "#00d4ff88", letterSpacing: "3px", marginBottom: "6px" }}>
+          ACCOUNT SECURITY AUDIT
+        </div>
+        <div style={{ fontSize: "24px", fontFamily: "'Orbitron',monospace", color: "#fff" }}>
+          ETHICAL BREACH & EXPOSURE CONTROL
+        </div>
+        <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+          Target Email: <span style={{ color: "#00d4ff" }}>{user?.email}</span> (Authentic User Security Boundary)
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+        <NeonBorder color={emailBreach?.exposed ? "#ff3366" : "#00ff88"} style={{ padding: "20px", borderRadius: "4px" }}>
+          <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px", marginBottom: "12px" }}>
+            KNOWN DATA BREACHES (XposedOrNot)
+          </div>
+
+          {loadingEmail ? (
+            <div style={{ color: "#00d4ff", fontSize: "12px" }}>Checking breach database...</div>
+          ) : emailBreach ? (
+            <div>
+              <div style={{ fontSize: "16px", color: emailBreach.exposed ? "#ff3366" : "#00ff88", fontFamily: "'Orbitron',monospace", marginBottom: "8px" }}>
+                {emailBreach.exposed ? `⚠️ COMPROMISED IN ${emailBreach.breachesCount} BREACHES` : "✓ NO KNOWN BREACHES DETECTED"}
+              </div>
+              {emailBreach.breaches && emailBreach.breaches.length > 0 && (
+                <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {emailBreach.breaches.map((b, i) => (
+                    <div key={i} style={{ background: "#1a0a0f", padding: "8px 12px", borderRadius: "2px", border: "1px solid #ff336633" }}>
+                      <div style={{ fontSize: "12px", color: "#fff", fontWeight: "bold" }}>{b.name}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ fontSize: "12px", color: "#666" }}>Unable to load email breaches</div>
+          )}
+        </NeonBorder>
+
+        <NeonBorder color="#7c3aed" style={{ padding: "20px", borderRadius: "4px" }}>
+          <div style={{ fontSize: "10px", color: "#7c3aed88", letterSpacing: "2px", marginBottom: "12px" }}>
+            PWNED PASSWORDS CHECK (K-ANONYMITY)
+          </div>
+          <div style={{ fontSize: "11px", color: "#aaa", marginBottom: "14px" }}>
+            Test a password against 800M+ leaked passwords. Only first 5 SHA-1 hash characters are sent. Password is never stored or logged.
+          </div>
+
+          <form onSubmit={handleTestPassword} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <input
+              type="password"
+              placeholder="Enter password to test"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: "#0a0a1a",
+                border: "1px solid #7c3aed44",
+                color: "#fff",
+                fontFamily: "monospace",
+                fontSize: "13px",
+                borderRadius: "2px",
+              }}
+            />
+            <CyberButton disabled={loadingPass || !password} style={{ width: "100%", padding: "10px" }}>
+              {loadingPass ? "CHECKING RANGE API..." : "CHECK PASSWORD LEAK"}
+            </CyberButton>
+          </form>
+
+          {passwordResult && (
+            <div style={{ marginTop: "14px", padding: "10px", background: passwordResult.leaked ? "#1a0a0f" : "#0a1a0f", border: `1px solid ${passwordResult.leaked ? "#ff3366" : "#00ff88"}`, borderRadius: "2px" }}>
+              <div style={{ fontSize: "13px", color: passwordResult.leaked ? "#ff3366" : "#00ff88", fontWeight: "bold" }}>
+                {passwordResult.leaked ? `🚨 LEAKED ${passwordResult.count.toLocaleString()} TIMES` : "✓ SAFE — NOT FOUND IN KNOWN LEAKS"}
+              </div>
+              <div style={{ fontSize: "10px", color: "#666", marginTop: "4px" }}>
+                SHA-1 Prefix sent: {passwordResult.sha1Prefix}*****
+              </div>
+            </div>
+          )}
+        </NeonBorder>
       </div>
     </div>
-    <div
+  );
+};
+
+const PlatformCard = ({ result }) => {
+  const pd = result.profileData || {};
+  return (
+    <NeonBorder
+      color={result.found ? result.color : "#333"}
       style={{
+        borderRadius: "4px",
+        padding: "16px",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        gap: "4px",
+        alignItems: "flex-start",
+        gap: "14px",
       }}
     >
       <div
         style={{
-          width: 10,
-          height: 10,
+          width: 44,
+          height: 44,
           borderRadius: "50%",
-          background: result.found ? result.color : "#333",
-          boxShadow: result.found ? `0 0 8px ${result.color}` : "none",
+          border: `2px solid ${result.found ? result.color : "#333"}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "18px",
+          boxShadow: result.found ? `0 0 12px ${result.color}66` : "none",
+          overflow: "hidden",
+          background: "#0a0a1a",
+          flexShrink: 0,
         }}
-      />
-      {result.found && (
-        <a
-          href={result.url}
-          target="_blank"
-          rel="noopener noreferrer"
+      >
+        {result.avatar ? (
+          <img
+            src={result.avatar}
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+        ) : (
+          <span style={{ color: result.found ? result.color : "#555" }}>
+            {result.icon}
+          </span>
+        )}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              fontFamily: "'Share Tech Mono',monospace",
+              color: result.found ? result.color : "#555",
+              fontSize: "14px",
+              letterSpacing: "1px",
+              fontWeight: "bold",
+            }}
+          >
+            {result.platform}
+          </div>
+          {result.found && (
+            <span
+              style={{
+                fontSize: "9px",
+                background: "#00ff8822",
+                color: "#00ff88",
+                padding: "1px 6px",
+                borderRadius: "2px",
+                letterSpacing: "1px",
+              }}
+            >
+              VERIFIED API [HIGH CONFIDENCE]
+            </span>
+          )}
+        </div>
+        <div
           style={{
-            fontSize: "10px",
-            color: result.color,
-            textDecoration: "none",
-            fontFamily: "monospace",
-            letterSpacing: "1px",
+            fontSize: "11px",
+            color: result.found ? "#aaa" : "#444",
+            marginTop: "2px",
           }}
         >
-          VIEW →
-        </a>
-      )}
-    </div>
-  </NeonBorder>
-);
+          {result.found ? "PROFILE DETECTED & VERIFIED" : "NO PROFILE FOUND"}
+        </div>
+
+        {result.found && pd && (
+          <div style={{ marginTop: "8px", fontSize: "11px", color: "#888", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+            {pd.name && <span>👤 <strong>{pd.name}</strong></span>}
+            {pd.location && <span>📍 {pd.location}</span>}
+            {pd.email && <span style={{ color: "#ffaa00" }}>✉ {pd.email}</span>}
+            {pd.public_repos !== undefined && <span>📦 {pd.public_repos} repos</span>}
+            {pd.karma !== undefined && <span>⭐ {pd.karma} karma</span>}
+            {pd.reputation !== undefined && <span>🏆 {pd.reputation} rep</span>}
+            {pd.created_at && <span>📅 Joined {new Date(pd.created_at).getFullYear()}</span>}
+            {pd.bio && (
+              <div style={{ width: "100%", fontSize: "11px", color: "#bbb", fontStyle: "italic", marginTop: "2px" }}>
+                "{pd.bio}"
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: "4px",
+        }}
+      >
+        <div
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            background: result.found ? result.color : "#333",
+            boxShadow: result.found ? `0 0 8px ${result.color}` : "none",
+          }}
+        />
+        {result.found && (
+          <a
+            href={result.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: "10px",
+              color: result.color,
+              textDecoration: "none",
+              fontFamily: "monospace",
+              letterSpacing: "1px",
+              marginTop: "6px",
+            }}
+          >
+            VIEW PROFILE →
+          </a>
+        )}
+      </div>
+    </NeonBorder>
+  );
+};
+
 
 const TerminalLog = ({ lines }) => {
   const ref = useRef(null);
@@ -931,6 +1288,11 @@ function ScanPage({
   onScan,
   results,
   riskScore,
+  riskBreakdown,
+  identityConfidence,
+  identityCard,
+  scanDiff,
+  remediationChecklist,
   aiAnalysis,
   aiLoading,
   logs,
@@ -939,8 +1301,11 @@ function ScanPage({
   setActiveTab,
   renderMarkdown,
   onBack,
+  checkPermutations,
+  setCheckPermutations,
+  permutationMatches,
 }) {
-  const tabs = ["graph", "results", "ai-analysis"];
+  const tabs = ["results", "graph", "ai-analysis"];
   const found = results.filter((r) => r.found);
   return (
     <div
@@ -977,7 +1342,7 @@ function ScanPage({
               letterSpacing: "2px",
             }}
           >
-            ← DASHBOARD
+            ← COMMAND CENTER
           </button>
           <div
             style={{
@@ -1001,7 +1366,7 @@ function ScanPage({
         </div>
 
         <div
-          style={{ padding: "28px 32px", maxWidth: "1100px", margin: "0 auto" }}
+          style={{ padding: "28px 32px", maxWidth: "1150px", margin: "0 auto" }}
         >
           <NeonBorder
             color="#7c3aed"
@@ -1019,7 +1384,7 @@ function ScanPage({
                 marginBottom: "14px",
               }}
             >
-              TARGET IDENTIFIER
+              TARGET IDENTIFIER & PERMUTATION SCAN
             </div>
             <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
               <div style={{ flex: 1, position: "relative" }}>
@@ -1072,6 +1437,18 @@ function ScanPage({
                 {scanning ? " SCANNING" : " SCAN TARGET"}
               </CyberButton>
             </div>
+            <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                id="permCheck"
+                checked={checkPermutations}
+                onChange={(e) => setCheckPermutations(e.target.checked)}
+                style={{ cursor: "pointer" }}
+              />
+              <label htmlFor="permCheck" style={{ fontSize: "11px", color: "#aaa", cursor: "pointer" }}>
+                Opt-in: Check common username permutations (e.g. {username || "u"}_, {username || "u"}.dev, the{username || "u"})
+              </label>
+            </div>
           </NeonBorder>
 
           {logs.length > 0 && (
@@ -1081,239 +1458,272 @@ function ScanPage({
           )}
 
           {(results.length > 0 || scanComplete) && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 340px",
-                gap: "20px",
-              }}
-            >
-              <div>
-                <div
-                  style={{ display: "flex", gap: "2px", marginBottom: "16px" }}
-                >
-                  {tabs.map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setActiveTab(t)}
-                      style={{
-                        padding: "8px 20px",
-                        background:
-                          activeTab === t ? "#00d4ff18" : "transparent",
-                        border: `1px solid ${activeTab === t ? "#00d4ff" : "#ffffff11"}`,
-                        color: activeTab === t ? "#00d4ff" : "#666",
-                        fontFamily: "'Share Tech Mono',monospace",
-                        fontSize: "11px",
-                        letterSpacing: "2px",
-                        cursor: "pointer",
-                        textTransform: "uppercase",
-                        borderRadius: "2px",
-                      }}
-                    >
-                      {t.replace("-", " ")}
-                    </button>
-                  ))}
-                </div>
-
-                {activeTab === "graph" && (
-                  <div className="fade-in">
-                    <NetworkGraph username={username} results={results} />
-                    <div
-                      style={{
-                        marginTop: "12px",
-                        fontSize: "10px",
-                        color: "#444",
-                        textAlign: "center",
-                        letterSpacing: "2px",
-                      }}
-                    >
-                      LIVE NETWORK TOPOLOGY — {found.length} NODES CONNECTED
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "results" && (
-                  <div
-                    className="fade-in"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                    }}
-                  >
-                    {results.map((r) => (
-                      <PlatformCard key={r.id} result={r} />
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === "ai-analysis" && (
-                  <NeonBorder
-                    color="#7c3aed"
-                    style={{
-                      padding: "24px",
-                      borderRadius: "4px",
-                      minHeight: "280px",
-                    }}
-                    className="fade-in"
-                  >
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "#7c3aed88",
-                        letterSpacing: "3px",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      ⬡ AI THREAT INTELLIGENCE
-                    </div>
-                    {aiLoading ? (
-                      <div
-                        style={{
-                          textAlign: "center",
-                          padding: "40px",
-                          color: "#7c3aed",
-                        }}
-                      >
-                        <div
-                          className="spin"
-                          style={{
-                            fontSize: "32px",
-                            display: "block",
-                            marginBottom: "16px",
-                          }}
-                        >
-                          ⟳
-                        </div>
-                        <div style={{ fontSize: "12px", letterSpacing: "2px" }}>
-                          NEURAL ENGINE PROCESSING...
-                        </div>
-                      </div>
-                    ) : aiAnalysis ? (
-                      renderMarkdown(aiAnalysis)
-                    ) : (
-                      <div
-                        style={{
-                          color: "#444",
-                          textAlign: "center",
-                          padding: "40px",
-                        }}
-                      >
-                        AWAITING SCAN COMPLETION
-                      </div>
-                    )}
-                  </NeonBorder>
-                )}
-              </div>
+            <div>
+              {/* UNIFIED IDENTITY CARD SHOWN FIRST ABOVE ALL RESULTS */}
+              {identityCard && <UnifiedIdentityCard identityCard={identityCard} />}
 
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 340px",
+                  gap: "20px",
                 }}
               >
-                <NeonBorder
-                  color={
-                    riskScore > 70
-                      ? "#ff3366"
-                      : riskScore > 30
-                        ? "#ffaa00"
-                        : "#00ff88"
-                  }
-                  style={{
-                    padding: "20px",
-                    borderRadius: "4px",
-                    textAlign: "center",
-                  }}
-                >
+                <div>
                   <div
-                    style={{
-                      fontSize: "10px",
-                      letterSpacing: "3px",
-                      color: "#666",
-                      marginBottom: "12px",
-                    }}
+                    style={{ display: "flex", gap: "2px", marginBottom: "16px" }}
                   >
-                    CYBER RISK SCORE
-                  </div>
-                  <RiskMeter score={riskScore} />
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: "#666",
-                      marginTop: "12px",
-                      letterSpacing: "1px",
-                    }}
-                  >
-                    {riskScore <= 30
-                      ? "MINIMAL EXPOSURE DETECTED"
-                      : riskScore <= 70
-                        ? "MODERATE DIGITAL FOOTPRINT"
-                        : "HIGH EXPOSURE — ACTION NEEDED"}
-                  </div>
-                </NeonBorder>
-
-                <NeonBorder
-                  color="#00d4ff22"
-                  style={{ padding: "20px", borderRadius: "4px" }}
-                >
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      letterSpacing: "3px",
-                      color: "#666",
-                      marginBottom: "14px",
-                    }}
-                  >
-                    EXPOSURE METRICS
-                  </div>
-                  {[
-                    {
-                      label: "Platforms Scanned",
-                      value: results.length,
-                      color: "#00d4ff",
-                    },
-                    {
-                      label: "Profiles Found",
-                      value: found.length,
-                      color: "#00ff88",
-                    },
-                    {
-                      label: "Not Found",
-                      value: results.length - found.length,
-                      color: "#666",
-                    },
-                    {
-                      label: "Exposure Rate",
-                      value: `${results.length ? Math.round((found.length / results.length) * 100) : 0}%`,
-                      color: riskScore > 70 ? "#ff3366" : "#ffaa00",
-                    },
-                  ].map((m) => (
-                    <div
-                      key={m.label}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "8px 0",
-                        borderBottom: "1px solid #ffffff08",
-                      }}
-                    >
-                      <span style={{ fontSize: "11px", color: "#666" }}>
-                        {m.label}
-                      </span>
-                      <span
+                    {tabs.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setActiveTab(t)}
                         style={{
-                          fontSize: "13px",
-                          color: m.color,
-                          fontFamily: "'Orbitron',monospace",
+                          padding: "8px 20px",
+                          background:
+                            activeTab === t ? "#00d4ff18" : "transparent",
+                          border: `1px solid ${activeTab === t ? "#00d4ff" : "#ffffff11"}`,
+                          color: activeTab === t ? "#00d4ff" : "#666",
+                          fontFamily: "'Share Tech Mono',monospace",
+                          fontSize: "11px",
+                          letterSpacing: "2px",
+                          cursor: "pointer",
+                          textTransform: "uppercase",
+                          borderRadius: "2px",
                         }}
                       >
-                        {m.value}
-                      </span>
+                        {t.replace("-", " ")}
+                      </button>
+                    ))}
+                  </div>
+
+                  {activeTab === "results" && (
+                    <div
+                      className="fade-in"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}
+                    >
+                      {results.map((r) => (
+                        <PlatformCard key={r.id} result={r} />
+                      ))}
+
+                      {/* MANUAL CHECK PLATFORMS */}
+                      <NeonBorder color="#333" style={{ padding: "16px", borderRadius: "4px", marginTop: "16px" }}>
+                        <div style={{ fontSize: "10px", color: "#888", letterSpacing: "2px", marginBottom: "10px" }}>
+                          MANUAL VERIFICATION PLATFORMS (Scraping Deprecated)
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          {MANUAL_PLATFORMS.map((mp) => (
+                            <div key={mp.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0a0a1a", padding: "8px 12px", borderRadius: "2px" }}>
+                              <div>
+                                <span style={{ color: mp.color, fontWeight: "bold", fontSize: "12px" }}>{mp.name}</span>
+                                <span style={{ fontSize: "10px", color: "#666", marginLeft: "10px" }}>{mp.note}</span>
+                              </div>
+                              <a href={mp.checkUrl(username)} target="_blank" rel="noreferrer" style={{ fontSize: "10px", color: mp.color, textDecoration: "none" }}>
+                                CHECK MANUALLY →
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </NeonBorder>
+
+                      {/* PERMUTATION MATCHES */}
+                      {permutationMatches && permutationMatches.length > 0 && (
+                        <NeonBorder color="#ffaa00" style={{ padding: "16px", borderRadius: "4px", marginTop: "16px" }}>
+                          <div style={{ fontSize: "10px", color: "#ffaa00", letterSpacing: "2px", marginBottom: "8px" }}>
+                            POSSIBLE RELATED ACCOUNTS (Username Permutations)
+                          </div>
+                          {permutationMatches.map((pm, i) => (
+                            <div key={i} style={{ fontSize: "11px", color: "#ccc", marginBottom: "4px" }}>
+                              • @{pm.permutation} found on {pm.platform} → <a href={pm.url} target="_blank" rel="noreferrer" style={{ color: "#00d4ff" }}>View Profile</a>
+                            </div>
+                          ))}
+                        </NeonBorder>
+                      )}
+
+                      {/* ACTIONABLE REMEDIATION CHECKLIST */}
+                      <RemediationPanel checklist={remediationChecklist} />
                     </div>
-                  ))}
-                </NeonBorder>
+                  )}
+
+                  {activeTab === "graph" && (
+                    <div className="fade-in">
+                      <NetworkGraph username={username} results={results} />
+                      <div
+                        style={{
+                          marginTop: "12px",
+                          fontSize: "10px",
+                          color: "#444",
+                          textAlign: "center",
+                          letterSpacing: "2px",
+                        }}
+                      >
+                        LIVE NETWORK TOPOLOGY — {found.length} NODES CONNECTED
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === "ai-analysis" && (
+                    <NeonBorder
+                      color="#7c3aed"
+                      style={{
+                        padding: "24px",
+                        borderRadius: "4px",
+                        minHeight: "280px",
+                      }}
+                      className="fade-in"
+                    >
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#7c3aed88",
+                          letterSpacing: "3px",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        ⬡ AI THREAT INTELLIGENCE
+                      </div>
+                      {aiLoading ? (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            padding: "40px",
+                            color: "#7c3aed",
+                          }}
+                        >
+                          <div
+                            className="spin"
+                            style={{
+                              fontSize: "32px",
+                              display: "block",
+                              marginBottom: "16px",
+                            }}
+                          >
+                            ⟳
+                          </div>
+                          <div style={{ fontSize: "12px", letterSpacing: "2px" }}>
+                            NEURAL ENGINE PROCESSING...
+                          </div>
+                        </div>
+                      ) : aiAnalysis ? (
+                        renderMarkdown(aiAnalysis)
+                      ) : (
+                        <div
+                          style={{
+                            color: "#444",
+                            textAlign: "center",
+                            padding: "40px",
+                          }}
+                        >
+                          AWAITING SCAN COMPLETION
+                        </div>
+                      )}
+                    </NeonBorder>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                  }}
+                >
+                  <NeonBorder
+                    color={
+                      riskScore > 70
+                        ? "#ff3366"
+                        : riskScore > 30
+                          ? "#ffaa00"
+                          : "#00ff88"
+                    }
+                    style={{
+                      padding: "20px",
+                      borderRadius: "4px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        letterSpacing: "3px",
+                        color: "#666",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      DETERMINISTIC CYBER RISK SCORE
+                    </div>
+                    <RiskMeter score={riskScore} />
+                    <RiskBreakdownList breakdown={riskBreakdown} />
+                  </NeonBorder>
+
+                  <IdentityConfidencePanel identityConfidence={identityConfidence} />
+
+                  <ScanDiffPanel scanDiff={scanDiff} />
+
+                  <NeonBorder
+                    color="#00d4ff22"
+                    style={{ padding: "20px", borderRadius: "4px" }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        letterSpacing: "3px",
+                        color: "#666",
+                        marginBottom: "14px",
+                      }}
+                    >
+                      EXPOSURE METRICS
+                    </div>
+                    {[
+                      {
+                        label: "Platforms Scanned",
+                        value: results.length,
+                        color: "#00d4ff",
+                      },
+                      {
+                        label: "Profiles Found",
+                        value: found.length,
+                        color: "#00ff88",
+                      },
+                      {
+                        label: "Not Found",
+                        value: results.length - found.length,
+                        color: "#666",
+                      },
+                      {
+                        label: "Exposure Rate",
+                        value: `${results.length ? Math.round((found.length / results.length) * 100) : 0}%`,
+                        color: riskScore > 70 ? "#ff3366" : "#ffaa00",
+                      },
+                    ].map((m) => (
+                      <div
+                        key={m.label}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          padding: "8px 0",
+                          borderBottom: "1px solid #ffffff08",
+                        }}
+                      >
+                        <span style={{ fontSize: "11px", color: "#666" }}>
+                          {m.label}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color: m.color,
+                            fontFamily: "'Orbitron',monospace",
+                          }}
+                        >
+                          {m.value}
+                        </span>
+                      </div>
+                    ))}
+                  </NeonBorder>
+                </div>
               </div>
             </div>
           )}
@@ -1333,7 +1743,7 @@ function ScanPage({
               <div
                 style={{ fontSize: "11px", color: "#222", marginTop: "8px" }}
               >
-                Searches GitHub, Reddit & Gravatar
+                Searches GitHub, Reddit, LeetCode, StackOverflow, Dev.to, Gravatar & HackerNews
               </div>
             </div>
           )}
@@ -1346,15 +1756,22 @@ function ScanPage({
 function Dashboard({ user, onBack, onLogout }) {
   const [page, setPage] = useState(PAGES.DASHBOARD);
   const [username, setUsername] = useState("");
+  const [checkPermutations, setCheckPermutations] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [results, setResults] = useState([]);
   const [riskScore, setRiskScore] = useState(0);
+  const [riskBreakdown, setRiskBreakdown] = useState([]);
+  const [identityConfidence, setIdentityConfidence] = useState(null);
+  const [identityCard, setIdentityCard] = useState(null);
+  const [scanDiff, setScanDiff] = useState(null);
+  const [remediationChecklist, setRemediationChecklist] = useState([]);
+  const [permutationMatches, setPermutationMatches] = useState([]);
   const [aiAnalysis, setAiAnalysis] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [logs, setLogs] = useState([]);
   const [scanHistory, setScanHistory] = useState([]);
   const [scanComplete, setScanComplete] = useState(false);
-  const [activeTab, setActiveTab] = useState("graph");
+  const [activeTab, setActiveTab] = useState("results");
 
   useEffect(() => {
     loadHistory();
@@ -1386,47 +1803,57 @@ function Dashboard({ user, onBack, onLogout }) {
       `INITIATING SCAN SEQUENCE FOR TARGET: ${username.toUpperCase()}`,
       "#00d4ff",
     );
-    addLog("Establishing secure tunnel...", "#00d4ff66");
+    addLog("Establishing API connections across 7 public platforms...", "#00d4ff66");
     await sleep(600);
 
     try {
-      const res = await scanAPI.startScan(username);
-      const scanResults = res.data.scan;
-      setResults(scanResults.results);
-      setRiskScore(scanResults.riskScore);
+      const res = await scanAPI.startScan(username, { checkPermutations });
+      const scanData = res.data.scan;
+
+      setResults(scanData.results || []);
+      setRiskScore(scanData.riskScore || 0);
+      setRiskBreakdown(scanData.riskBreakdown || []);
+      setIdentityConfidence(scanData.identityConfidence || null);
+      setIdentityCard(scanData.identityCard || null);
+      setScanDiff(scanData.scanDiff || null);
+      setRemediationChecklist(scanData.remediationChecklist || []);
+      setPermutationMatches(res.data.permutationMatches || []);
+
       addLog(
-        `Scan complete. ${scanResults.platformsFound}/${scanResults.results.length} platforms detected.`,
+        `Scan complete. ${scanData.platformsFound}/${scanData.results.length} platforms verified.`,
         "#00d4ff",
       );
       addLog(
-        `Cyber Risk Score: ${scanResults.riskScore}/100`,
-        scanResults.riskScore > 70
+        `Deterministic Risk Score: ${scanData.riskScore}/100`,
+        scanData.riskScore > 70
           ? "#ff3366"
-          : scanResults.riskScore > 30
+          : scanData.riskScore > 30
             ? "#ffaa00"
             : "#00ff88",
       );
       setScanComplete(true);
       await loadHistory();
-      await generateAI(scanResults.id);
+      await generateAI(scanData._id || scanData.id);
     } catch (error) {
-      addLog("SCAN FAILED: " + error.message, "#ff3366");
+      addLog("SCAN FAILED: " + (error.response?.data?.message || error.message), "#ff3366");
     }
     setScanning(false);
   };
 
   const generateAI = async (scanId) => {
+    if (!scanId) return;
     setAiLoading(true);
     try {
       const res = await scanAPI.generateAnalysis(scanId);
       setAiAnalysis(res.data.analysis);
     } catch (error) {
       setAiAnalysis(
-        "### AI ANALYSIS\nFailed to generate analysis. Please try again.",
+        "### EXPOSURE SUMMARY\nFailed to generate AI threat analysis.",
       );
     }
     setAiLoading(false);
   };
+
 
   const renderMarkdown = (text) => {
     return text.split("\n").map((line, i) => {
@@ -1512,6 +1939,11 @@ function Dashboard({ user, onBack, onLogout }) {
         onScan={runScan}
         results={results}
         riskScore={riskScore}
+        riskBreakdown={riskBreakdown}
+        identityConfidence={identityConfidence}
+        identityCard={identityCard}
+        scanDiff={scanDiff}
+        remediationChecklist={remediationChecklist}
         aiAnalysis={aiAnalysis}
         aiLoading={aiLoading}
         logs={logs}
@@ -1519,6 +1951,9 @@ function Dashboard({ user, onBack, onLogout }) {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         renderMarkdown={renderMarkdown}
+        checkPermutations={checkPermutations}
+        setCheckPermutations={setCheckPermutations}
+        permutationMatches={permutationMatches}
         onBack={() => {
           setPage(PAGES.DASHBOARD);
           setScanComplete(false);
@@ -1531,9 +1966,9 @@ function Dashboard({ user, onBack, onLogout }) {
 
   const totalScans = scanHistory.length;
   const avgRisk = totalScans
-    ? Math.round(scanHistory.reduce((s, h) => s + h.riskScore, 0) / totalScans)
+    ? Math.round(scanHistory.reduce((s, h) => s + (h.riskScore || 0), 0) / totalScans)
     : 0;
-  const highRisk = scanHistory.filter((h) => h.riskScore > 70).length;
+  const highRisk = scanHistory.filter((h) => (h.riskScore || 0) > 70).length;
 
   return (
     <div
@@ -1580,6 +2015,58 @@ function Dashboard({ user, onBack, onLogout }) {
               v2.4.1
             </div>
           </div>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => setPage(PAGES.DASHBOARD)}
+              style={{
+                padding: "8px 16px",
+                background: page === PAGES.DASHBOARD ? "#00d4ff18" : "transparent",
+                border: `1px solid ${page === PAGES.DASHBOARD ? "#00d4ff" : "#ffffff11"}`,
+                color: page === PAGES.DASHBOARD ? "#00d4ff" : "#888",
+                fontFamily: "'Share Tech Mono',monospace",
+                fontSize: "11px",
+                letterSpacing: "1px",
+                cursor: "pointer",
+                borderRadius: "2px",
+              }}
+            >
+              COMMAND CENTER
+            </button>
+            <button
+              onClick={() => setPage(PAGES.SCAN)}
+              style={{
+                padding: "8px 16px",
+                background: page === PAGES.SCAN ? "#00d4ff18" : "transparent",
+                border: `1px solid ${page === PAGES.SCAN ? "#00d4ff" : "#ffffff11"}`,
+                color: page === PAGES.SCAN ? "#00d4ff" : "#888",
+                fontFamily: "'Share Tech Mono',monospace",
+                fontSize: "11px",
+                letterSpacing: "1px",
+                cursor: "pointer",
+                borderRadius: "2px",
+              }}
+            >
+              OSINT SCANNER
+            </button>
+            <button
+              onClick={() => setPage(PAGES.ACCOUNT_SECURITY)}
+              style={{
+                padding: "8px 16px",
+                background: page === PAGES.ACCOUNT_SECURITY ? "#00ff8818" : "transparent",
+                border: `1px solid ${page === PAGES.ACCOUNT_SECURITY ? "#00ff88" : "#ffffff11"}`,
+                color: page === PAGES.ACCOUNT_SECURITY ? "#00ff88" : "#888",
+                fontFamily: "'Share Tech Mono',monospace",
+                fontSize: "11px",
+                letterSpacing: "1px",
+                cursor: "pointer",
+                borderRadius: "2px",
+              }}
+            >
+              ACCOUNT SECURITY
+            </button>
+          </div>
+
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <div style={{ fontSize: "12px", color: "#00ff8888" }}>
               ⬟ SYSTEM ONLINE
@@ -1596,6 +2083,11 @@ function Dashboard({ user, onBack, onLogout }) {
             </CyberButton>
           </div>
         </div>
+
+        {page === PAGES.ACCOUNT_SECURITY ? (
+          <AccountSecurityTab user={user} />
+        ) : (
+
 
         <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
           <div style={{ marginBottom: "32px" }}>
@@ -1807,10 +2299,12 @@ function Dashboard({ user, onBack, onLogout }) {
             )}
           </NeonBorder>
         </div>
+        )}
       </div>
     </div>
   );
 }
+
 
 export default function OpenTrace() {
   const [page, setPage] = useState(PAGES.LANDING);

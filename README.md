@@ -16,14 +16,17 @@
 ## 📸 Screenshots
 
 ### Authentication Portal
+
 ![Authentication](.<img width="1896" height="940" alt="image" src="https://github.com/user-attachments/assets/51f1906b-d6d3-4ce8-9fdf-d8e9fba252ca" />
 )
 
 ### Cyber Command Center
+
 ![Dashboard](.<img width="1918" height="841" alt="image" src="https://github.com/user-attachments/assets/9bfcd865-340e-4a55-94c7-00b115a302a2" />
 )
 
 ### Intelligence Scan & Risk Analysis
+
 ![Analysis](.<img width="1919" height="959" alt="image" src="https://github.com/user-attachments/assets/448b428e-3ae3-4794-b3de-1df08f71a39e" />
 )
 
@@ -123,7 +126,9 @@ npm run dev
 6. Copy Client ID and Secret to `.env` files
 
 ---
+
 ## 🏗️ System Architecture
+
 ```mermaid
 graph TD
 
@@ -461,11 +466,35 @@ vercel --prod
 
 ---
 
+---
+
+## 🎯 How OpenTrace Differs From Naive Username Checkers
+
+Naive OSINT checkers simply query string existence across hundreds of sites. OpenTrace provides structured digital footprint awareness:
+
+1. **Deterministic, Explainable Risk Model**: Completely eliminates `Math.random()`. Evaluates cross-platform correlation, PII disclosures, and footprint depth with a transparent breakdown.
+2. **Identity Linkage Confidence Scoring**: Distinguishes between identical usernames belonging to different individuals vs. confirmed single identities using cross-linked handles, bio correlation, and avatar pHash matching.
+3. **Unified Identity Synthesis**: Synthesizes names, locations, social links, and bios into a single high-level Identity Card, pinning the user's earliest online footprint.
+4. **Exposure Change Monitoring**: Diffs new scan results against historical baseline scans to surface newly created accounts or deactivations over time.
+5. **Actionable Remediation**: Connects detected exposure fields directly to exact privacy setting deep-links (e.g. GitHub email privacy, Reddit privacy settings).
+
+---
+
+## ⚠️ Known Limitations & Design Decisions
+
+- **LinkedIn Scraping**: Dropped automated scraping because LinkedIn actively blocks unauthenticated requests and scraping violates ToS. Replaced with static manual check links.
+- **Twitter/X & Instagram**: Automated HTML parsing was deprecated due to anti-scraping measures returning generic fallback pages. Marked for manual verification.
+- **Perceptual Image Hashing**: Image pHash utilizes `sharp` when available; falls back gracefully to URL matching if native binaries are restricted on serverless free tiers.
+- **Ethical Self-Only Security**: Breach checking is strictly scoped to `req.user.email` to prevent misuse as an open reconnaissance tool. Passwords are password-tested locally using K-Anonymity SHA-1 prefixes (`api.pwnedpasswords.com/range/{first5}`).
+
+---
+
 ## 📋 Disclaimer
 
 OpenTrace is for **educational and cybersecurity awareness purposes only**.  
 It uses only public APIs and does not engage in illegal surveillance, scraping, or data harvesting.  
 Always respect platform Terms of Service and privacy laws.
+
 
 ---
 

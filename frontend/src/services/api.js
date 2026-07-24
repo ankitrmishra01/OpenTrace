@@ -25,10 +25,13 @@ export const authAPI = {
 };
 
 export const scanAPI = {
-  startScan: (username) => api.post("/scan/start", { username }),
+  startScan: (username, options = {}) => api.post("/scan/start", { username, ...options }),
   getHistory: () => api.get("/scan/history"),
   getScanResult: (scanId) => api.get(`/scan/${scanId}`),
   generateAnalysis: (scanId) => api.post("/scan/analyze", { scanId }),
+  checkEmailBreaches: () => api.get("/scan/account-security/email"),
+  checkPasswordLeak: (password) => api.post("/scan/account-security/password", { password }),
 };
+
 
 export default api;

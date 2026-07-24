@@ -1,13 +1,13 @@
 import axios from "axios";
+import crypto from "crypto";
 
-const PLATFORMS = [
+export const PLATFORMS = [
   {
     id: "github",
     name: "GitHub",
     icon: "⬡",
     color: "#58a6ff",
     checkUrl: (u) => `https://github.com/${u}`,
-    avatarApi: (u) => `https://github.com/${u}.png?size=80`,
   },
   {
     id: "reddit",
@@ -15,15 +15,6 @@ const PLATFORMS = [
     icon: "◈",
     color: "#ff4500",
     checkUrl: (u) => `https://www.reddit.com/user/${u}`,
-    avatarApi: null,
-  },
-  {
-    id: "linkedin",
-    name: "LinkedIn",
-    icon: "◉",
-    color: "#0077b5",
-    checkUrl: (u) => `https://www.linkedin.com/in/${u}`,
-    avatarApi: null,
   },
   {
     id: "leetcode",
@@ -31,15 +22,45 @@ const PLATFORMS = [
     icon: "◆",
     color: "#ffa116",
     checkUrl: (u) => `https://leetcode.com/${u}`,
-    avatarApi: null,
   },
+  {
+    id: "stackoverflow",
+    name: "Stack Overflow",
+    icon: "🥞",
+    color: "#f48024",
+    checkUrl: (u) => `https://stackoverflow.com/users/${u}`,
+  },
+  {
+    id: "devto",
+    name: "Dev.to",
+    icon: "👩‍💻",
+    color: "#0a0a0a",
+    checkUrl: (u) => `https://dev.to/${u}`,
+  },
+  {
+    id: "gravatar",
+    name: "Gravatar",
+    icon: "🌐",
+    color: "#1e8cbe",
+    checkUrl: (u) => `https://gravatar.com/${u}`,
+  },
+  {
+    id: "hackernews",
+    name: "HackerNews",
+    icon: "Y",
+    color: "#ff6600",
+    checkUrl: (u) => `https://news.ycombinator.com/user?id=${u}`,
+  },
+];
+
+export const MANUAL_PLATFORMS = [
   {
     id: "twitter",
     name: "Twitter/X",
     icon: "◇",
     color: "#1da1f2",
     checkUrl: (u) => `https://twitter.com/${u}`,
-    avatarApi: null,
+    note: "Manual check link (automated scraping deprecated due to anti-scraping)",
   },
   {
     id: "instagram",
@@ -47,7 +68,15 @@ const PLATFORMS = [
     icon: "◑",
     color: "#e1306c",
     checkUrl: (u) => `https://www.instagram.com/${u}`,
-    avatarApi: null,
+    note: "Manual check link (automated scraping deprecated due to anti-scraping)",
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    icon: "◉",
+    color: "#0077b5",
+    checkUrl: (u) => `https://www.linkedin.com/in/${u}`,
+    note: "Manual check link (unauthenticated scraping violates ToS)",
   },
 ];
 
@@ -57,8 +86,9 @@ export const scanPlatforms = async (username) => {
   for (const platform of PLATFORMS) {
     try {
       let found = false;
+      let profileData = null;
       let avatar = null;
-      let note = null;
+      const confidence = "high";
 
       if (platform.id === "github") {
         try {
@@ -69,9 +99,22 @@ export const scanPlatforms = async (username) => {
               timeout: 5000,
             },
           );
-          found = response.status === 200;
-          if (found && platform.avatarApi) {
-            avatar = platform.avatarApi(username);
+          if (response.status === 200 && response.data) {
+            found = true;
+            const d = response.data;
+            avatar = d.avatar_url || null;
+            profileData = {
+              name: d.name || null,
+              bio: d.bio || null,
+              company: d.company || null,
+              location: d.location || null,
+              blog: d.blog || null,
+              twitter_username: d.twitter_username || null,
+              public_repos: d.public_repos ?? 0,
+              followers: d.followers ?? 0,
+              created_at: d.created_at || null,
+              email: d.email || null,
+            };
           }
         } catch (err) {
           found = false;
@@ -81,11 +124,24 @@ export const scanPlatforms = async (username) => {
           const response = await axios.get(
             `https://www.reddit.com/user/${username}/about.json`,
             {
-              headers: { "User-Agent": "OpenTrace/1.0" },
+              headers: { "User-Agent": "OpenTrace/1.0 OSINT Scanner" },
               timeout: 5000,
             },
           );
-          found = response.status === 200 && !response.data?.data?.is_suspended;
+          if (response.status === 200 && response.data?.data && !response.data.data.is_suspended) {
+            found = true;
+            const d = response.data.data;
+            avatar = d.icon_img ? d.icon_img.split("?")[0] : null;
+            profileData = {
+              name: d.name || null,
+              created_utc: d.created_utc ? new Date(d.created_utc * 1000).toISOString() : null,
+              comment_karma: d.comment_karma ?? 0,
+              link_karma: d.link_karma ?? 0,
+              karma: (d.comment_karma || 0) + (d.link_karma || 0),
+              is_gold: d.is_gold ?? false,
+              has_verified_email: d.has_verified_email ?? false,
+            };
+          }
         } catch (err) {
           found = false;
         }
@@ -94,75 +150,133 @@ export const scanPlatforms = async (username) => {
           const response = await axios.post(
             "https://leetcode.com/graphql",
             {
-              query: `{ matchedUser(username: "${username}") { username } }`,
+              query: `query getUserProfile($username: String!) {
+                matchedUser(username: $username) {
+                  username
+                  profile {
+                    ranking
+                    reputation
+                    realName
+                    userAvatar
+                    aboutMe
+                  }
+                  submitStats {
+                    acSubmissionNum {
+                      count
+                    }
+                  }
+                }
+              }`,
+              variables: { username },
             },
             {
               headers: { "Content-Type": "application/json" },
               timeout: 5000,
             },
           );
-          found = !!response.data?.data?.matchedUser;
+          const matchedUser = response.data?.data?.matchedUser;
+          if (matchedUser) {
+            found = true;
+            const p = matchedUser.profile || {};
+            avatar = p.userAvatar || null;
+            profileData = {
+              username: matchedUser.username,
+              name: p.realName || null,
+              ranking: p.ranking || null,
+              reputation: p.reputation || null,
+              about_me: p.aboutMe || null,
+            };
+          }
         } catch (err) {
           found = false;
         }
-      } else if (platform.id === "linkedin") {
+      } else if (platform.id === "stackoverflow") {
         try {
           const response = await axios.get(
-            `https://www.linkedin.com/in/${username}`,
-            {
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                Accept:
-                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate, br",
-                DNT: "1",
-                Connection: "keep-alive",
-                "Upgrade-Insecure-Requests": "1",
-              },
-              timeout: 10000,
-              validateStatus: () => true,
-              maxRedirects: 0,
-            },
+            `https://api.stackexchange.com/2.3/users?inname=${encodeURIComponent(username)}&site=stackoverflow`,
+            { timeout: 5000 },
           );
-          // LinkedIn returns 200 for valid profiles, 404 for not found, 999 for blocked requests
-          // Redirect (30x) to login means profile might exist but requires auth
-          found =
-            response.status === 200 ||
-            (response.status >= 300 && response.status < 400);
+          const items = response.data?.items || [];
+          const matched = items.find(
+            (item) => item.display_name?.toLowerCase() === username.toLowerCase(),
+          );
+          if (matched) {
+            found = true;
+            avatar = matched.profile_image || null;
+            profileData = {
+              display_name: matched.display_name,
+              reputation: matched.reputation ?? 0,
+              location: matched.location || null,
+              about_me: matched.about_me || null,
+              creation_date: matched.creation_date
+                ? new Date(matched.creation_date * 1000).toISOString()
+                : null,
+              website_url: matched.website_url || null,
+            };
+          }
         } catch (err) {
           found = false;
         }
-      } else if (platform.id === "twitter") {
+      } else if (platform.id === "devto") {
         try {
-          const response = await axios.get(`https://twitter.com/${username}`, {
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            },
+          const response = await axios.get(
+            `https://dev.to/api/users/by_username?url=${encodeURIComponent(username)}`,
+            { timeout: 5000 },
+          );
+          if (response.status === 200 && response.data && response.data.id) {
+            found = true;
+            const d = response.data;
+            avatar = d.profile_image || null;
+            profileData = {
+              name: d.name || null,
+              summary: d.summary || null,
+              location: d.location || null,
+              github_username: d.github_username || null,
+              twitter_username: d.twitter_username || null,
+              joined_at: d.joined_at || null,
+              website_url: d.website_url || null,
+            };
+          }
+        } catch (err) {
+          found = false;
+        }
+      } else if (platform.id === "gravatar") {
+        try {
+          const hash = crypto
+            .createHash("md5")
+            .update(username.trim().toLowerCase())
+            .digest("hex");
+          const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=404`;
+          const response = await axios.get(avatarUrl, {
             timeout: 5000,
-            validateStatus: () => true,
+            validateStatus: (status) => status === 200 || status === 404,
           });
-          found = response.status === 200 && response.data.includes("account");
+          if (response.status === 200) {
+            found = true;
+            avatar = avatarUrl;
+            profileData = {
+              email_hash: hash,
+              registered: true,
+            };
+          }
         } catch (err) {
           found = false;
         }
-      } else if (platform.id === "instagram") {
+      } else if (platform.id === "hackernews") {
         try {
           const response = await axios.get(
-            `https://www.instagram.com/${username}`,
-            {
-              headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-              },
-              timeout: 5000,
-              validateStatus: () => true,
-            },
+            `https://hacker-news.firebaseio.com/v0/user/${username}.json`,
+            { timeout: 5000 },
           );
-          found =
-            response.status === 200 && response.data.includes("instagram");
+          if (response.status === 200 && response.data && response.data.id) {
+            found = true;
+            const d = response.data;
+            profileData = {
+              created: d.created ? new Date(d.created * 1000).toISOString() : null,
+              karma: d.karma ?? 0,
+              about: d.about || null,
+            };
+          }
         } catch (err) {
           found = false;
         }
@@ -172,8 +286,9 @@ export const scanPlatforms = async (username) => {
         platform: platform.name,
         id: platform.id,
         found,
+        confidence,
+        profileData,
         avatar,
-        note,
         url: platform.checkUrl(username),
         color: platform.color,
         icon: platform.icon,
@@ -183,8 +298,9 @@ export const scanPlatforms = async (username) => {
         platform: platform.name,
         id: platform.id,
         found: false,
+        confidence: "high",
+        profileData: null,
         avatar: null,
-        note: null,
         url: platform.checkUrl(username),
         color: platform.color,
         icon: platform.icon,
@@ -194,3 +310,4 @@ export const scanPlatforms = async (username) => {
 
   return results;
 };
+

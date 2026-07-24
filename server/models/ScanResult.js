@@ -16,6 +16,8 @@ const ScanResultSchema = new mongoose.Schema(
         platform: String,
         id: String,
         found: Boolean,
+        confidence: String,
+        profileData: Object,
         avatar: String,
         url: String,
         color: String,
@@ -27,6 +29,14 @@ const ScanResultSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    riskBreakdown: [Object],
+    identityConfidence: {
+      score: Number,
+      evidence: [String],
+    },
+    identityCard: Object,
+    scanDiff: Object,
+    remediationChecklist: [Object],
     aiAnalysis: String,
     platformsFound: Number,
     createdAt: {
@@ -38,3 +48,4 @@ const ScanResultSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("ScanResult", ScanResultSchema);
+
