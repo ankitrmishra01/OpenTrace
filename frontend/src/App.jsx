@@ -6,8 +6,11 @@ import {
   createContext,
   useContext,
 } from "react";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleOAuthProvider, GoogleLogin, useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 import { authAPI, scanAPI } from "./services/api.js";
+
+
 
 const AuthContext = createContext();
 
@@ -1042,7 +1045,43 @@ function AuthPage({
   onSubmit,
   onBack,
   onGoogleSuccess,
+  setUser,
+  setPage,
 }) {
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const userInfo = await axios.get(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+          },
+        );
+        const res = await authAPI.googleAuth({
+          googleId: userInfo.data.sub,
+          email: userInfo.data.email,
+          name: userInfo.data.name || userInfo.data.email.split("@")[0],
+          picture: userInfo.data.picture,
+        });
+        const { token, user: userData } = res.data;
+        localStorage.setItem("ot_token", token);
+        localStorage.setItem("ot_user", JSON.stringify(userData));
+        if (setUser) setUser(userData);
+        if (setPage) setPage(PAGES.DASHBOARD);
+      } catch (err) {
+        console.error("Google auth backend error:", err);
+        alert(
+          "Google login failed: " +
+            (err.response?.data?.message || err.message || "Unknown error"),
+        );
+      }
+    },
+    onError: (err) => {
+      console.error("Google OAuth Popup error:", err);
+      alert("Google Sign-In popup failed or was closed.");
+    },
+  });
+
   return (
     <div
       style={{
@@ -1244,20 +1283,20 @@ function AuthPage({
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
+              flexDirection: "column",
+              gap: "12px",
               width: "100%",
               marginBottom: "20px",
             }}
           >
-            <GoogleLogin
-              onSuccess={onGoogleSuccess}
-              onError={() => alert("Google Login Failed")}
-              theme="filled_black"
-              shape="rectangular"
-              size="large"
-              width="350"
-            />
+            <CyberButton
+              onClick={() => loginWithGoogle()}
+              style={{ width: "100%", padding: "12px", fontSize: "13px" }}
+            >
+              🔐 SIGN IN WITH GOOGLE
+            </CyberButton>
           </div>
+
 
           <div style={{ textAlign: "center", marginTop: "20px" }}>
             <button
@@ -2439,7 +2478,10 @@ export default function OpenTrace() {
         onSubmit={handleAuth}
         onBack={() => setPage(PAGES.LANDING)}
         onGoogleSuccess={handleGoogleSuccess}
+        setUser={setUser}
+        setPage={setPage}
       />
+
     );
   if (user)
     return (
