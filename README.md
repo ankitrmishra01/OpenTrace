@@ -15,10 +15,12 @@
 <img width="1896" height="940" alt="Authentication Portal" src="https://github.com/user-attachments/assets/51f1906b-d6d3-4ce8-9fdf-d8e9fba252ca" />
 
 ### Cyber Command Center
-<img width="1918" height="841" alt="Cyber Command Center" src="https://github.com/user-attachments/assets/9bfcd865-340e-4a55-94c7-00b115a302a2" />
+<img width="1917" height="896" alt="image" src="https://github.com/user-attachments/assets/aa66aea7-e072-4bd2-8b0e-3e47fcf9602b" />
+
 
 ### Intelligence Scan & Cyber Risk Index
-<img width="1919" height="959" alt="Intelligence Scan & Risk Analysis" src="https://github.com/user-attachments/assets/448b428e-3ae3-4794-b3de-1df08f71a39e" />
+<img width="1911" height="895" alt="image" src="https://github.com/user-attachments/assets/534f9479-e31a-47ef-8a26-2e791e9ef75d" />
+
 
 ---
 
