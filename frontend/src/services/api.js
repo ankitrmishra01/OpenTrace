@@ -17,6 +17,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("ot_token");
+      localStorage.removeItem("ot_user");
+    }
+    return Promise.reject(error);
+  },
+);
+
+
 export const authAPI = {
   register: (data) => api.post("/auth/register", data),
   login: (data) => api.post("/auth/login", data),

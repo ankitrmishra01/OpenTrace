@@ -15,16 +15,33 @@ export const getEmailBreaches = async (req, res) => {
     try {
       const response = await axios.get(
         `https://api.xposedornot.com/v1/check-email/${encodeURIComponent(email)}`,
-        { timeout: 8000 },
+        {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          },
+          timeout: 8000,
+        },
       );
 
-      if (response.data && response.data.ExposedBreaches) {
+      if (response.data && response.data.breaches && Array.isArray(response.data.breaches[0])) {
+        const breachNames = response.data.breaches[0];
+        return res.status(200).json({
+          success: true,
+          email,
+          exposed: breachNames.length > 0,
+          breachesCount: breachNames.length,
+          breaches: breachNames.map((name) => ({
+            name,
+          })),
+        });
+      } else if (response.data && response.data.ExposedBreaches) {
         const breachesData = response.data.ExposedBreaches[0] || {};
         const breachNames = Object.keys(breachesData);
         return res.status(200).json({
           success: true,
           email,
-          exposed: true,
+          exposed: breachNames.length > 0,
           breachesCount: breachNames.length,
           breaches: breachNames.map((name) => ({
             name,
@@ -60,6 +77,7 @@ export const getEmailBreaches = async (req, res) => {
     });
   }
 };
+
 
 export const checkPasswordLeak = async (req, res) => {
   try {

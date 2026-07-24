@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
   try {
@@ -19,8 +20,15 @@ export const protect = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
+      const secret = process.env.JWT_SECRET || "opentrace_jwt_secret_fallback_key_2026";
+      const decoded = jwt.verify(token, secret);
+      const user = await User.findById(decoded.id).select("-password");
+      if (!user) {
+        return res
+          .status(401)
+          .json({ success: false, message: "User account no longer exists" });
+      }
+      req.user = user;
       next();
     } catch (err) {
       return res
@@ -31,3 +39,4 @@ export const protect = async (req, res, next) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
