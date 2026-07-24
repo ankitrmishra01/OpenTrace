@@ -1,17 +1,32 @@
 import axios from "axios";
 
 const getApiUrl = () => {
+  let base;
   if (
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1")
+    import.meta.env.VITE_API_URL &&
+    !import.meta.env.VITE_API_URL.includes("localhost")
   ) {
-    return "http://localhost:5000/api";
+    base = import.meta.env.VITE_API_URL;
+  } else if (
+    typeof window !== "undefined" &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1"
+  ) {
+    base = "https://opentrace-server.onrender.com/api";
+  } else {
+    base = "http://localhost:5000/api";
   }
-  return "https://opentrace-server.onrender.com/api";
+
+  // Normalize: strip trailing slash, ensure it ends in /api
+  base = base.replace(/\/+$/, "");
+  if (!base.endsWith("/api")) base += "/api";
+
+  return base;
 };
 
-const API_URL = getApiUrl();
+export const API_URL = getApiUrl();
+console.log("[OpenTrace] Resolved API base URL:", API_URL);
+
 
 
 

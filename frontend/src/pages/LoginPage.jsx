@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { authAPI } from "../services/api.js";
+import { authAPI, API_URL } from "../services/api.js";
 import { MatrixRain, CyberButton, NeonBorder } from "../components/CommonUI.jsx";
 
 export default function LoginPage() {
@@ -24,7 +24,12 @@ export default function LoginPage() {
       localStorage.setItem("ot_user", JSON.stringify(user));
       navigate(from, { replace: true });
     } catch (err) {
-      alert("Login failed: " + (err.response?.data?.message || err.message));
+      console.error("Login failed:", err.response?.status, err.response?.data || err.message);
+      alert(
+        err.response?.status === 404
+          ? `Auth endpoint not found (404) at ${API_URL}/auth/login — check VITE_API_URL includes /api`
+          : err.response?.data?.message || "Login failed"
+      );
     }
     setLoading(false);
   };
@@ -42,11 +47,16 @@ export default function LoginPage() {
       localStorage.setItem("ot_user", JSON.stringify(user));
       navigate(from, { replace: true });
     } catch (err) {
-      console.error("Google login error:", err);
-      alert("Google Login Failed: " + (err.response?.data?.message || err.message));
+      console.error("Google auth failed:", err.response?.status, err.response?.data || err.message);
+      alert(
+        err.response?.status === 404
+          ? `Auth endpoint not found (404) at ${API_URL}/auth/google — check VITE_API_URL includes /api`
+          : err.response?.data?.message || "Google sign-in failed"
+      );
     }
     setLoading(false);
   };
+
 
   return (
     <div
