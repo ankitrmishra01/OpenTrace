@@ -2354,11 +2354,25 @@ export default function OpenTrace() {
       if (!credential) {
         throw new Error("No credential received from Google");
       }
-      const decoded = JSON.parse(atob(credential.split(".")[1]));
+      let decoded;
+      try {
+        const base64Url = credential.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+            .join(""),
+        );
+        decoded = JSON.parse(jsonPayload);
+      } catch (e) {
+        decoded = JSON.parse(atob(credential.split(".")[1]));
+      }
+
       const res = await authAPI.googleAuth({
         googleId: decoded.sub,
         email: decoded.email,
-        name: decoded.name,
+        name: decoded.name || decoded.email.split("@")[0],
         picture: decoded.picture,
       });
       const { token, user: userData } = res.data;
@@ -2368,10 +2382,14 @@ export default function OpenTrace() {
       setPage(PAGES.DASHBOARD);
     } catch (err) {
       console.error("Google login error:", err);
-      alert("Google login failed: " + (err.message || "Unknown error"));
+      alert(
+        "Google login failed: " +
+          (err.response?.data?.message || err.message || "Unknown error"),
+      );
     }
     setLoading(false);
   };
+
 
   const handleLogout = () => {
     localStorage.removeItem("ot_token");
