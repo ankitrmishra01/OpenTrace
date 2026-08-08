@@ -21,12 +21,14 @@ app.use(
 );
 
 
+// Health check endpoint for external uptime pinging (before rate limiting & auth)
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", service: "opentrace-backend" });
+});
+
 app.use(express.json());
 app.use(limiter);
 
-app.get("/health", (req, res) => {
-  res.json({ status: "Server is running" });
-});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/scan", scanRoutes);
